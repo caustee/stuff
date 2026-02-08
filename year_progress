@@ -2,15 +2,13 @@
 
 # Year Progress Widget - Cross-platform compatible
 # Works with bash 3+, zsh, busybox sh, and other POSIX shells
-# Author: Costin Stefan
 
 year_progress() {
     # Get current date components using POSIX-compatible date command
     if command -v date >/dev/null 2>&1; then
-        # Try different date formats for cross-platform compatibility
         if current_year=$(date +%Y 2>/dev/null) && current_day=$(date +%j 2>/dev/null); then
-            # Remove leading zeros from day of year
-            current_day=$(printf "%d" "$current_day" 2>/dev/null || echo "$current_day")
+            current_day=$(printf '%s\n' "$current_day" | sed 's/^0*//')
+            [ -z "$current_day" ] && current_day=0
         else
             echo "Error: Unable to get current date"
             return 1
@@ -52,12 +50,10 @@ year_progress() {
     # Color codes (with fallback for systems without color support)
     if [ -t 1 ] && { [ "$TERM" != "dumb" ] && [ -n "$TERM" ]; }; then
         # Colors
-#        PURPLE='\033[38;5;135m' ## works good on normal sessions where I'm sshing
-        PURPLE='\033[96m' ## added to work on my dark background zsh terminal
+        PURPLE='\033[38;5;135m'
         WHITE='\033[97m'
-        GRAY='\033[37m'
-#        GRAY='\033[90m' ## works good on normal sessions where I'm sshing
-        RESET='\033[0m'  ## added to work on my dark background zsh terminal
+        GRAY='\033[90m'
+        RESET='\033[0m'
         BOLD='\033[1m'
     else
         # No colors for non-terminal or dumb terminal
@@ -78,7 +74,8 @@ year_progress() {
     printf "${PURPLE}│${RESET}                                                     ${PURPLE}│${RESET}\n"
     printf "${PURPLE}│${RESET}  ${WHITE}${filled}${GRAY}${empty}${RESET}  ${BOLD}${WHITE}%3d%%${RESET} ${PURPLE}    │${RESET}\n" "$percentage"
     printf "${PURPLE}│${RESET}                                                     ${PURPLE}│${RESET}\n"
-    printf "${PURPLE}│${RESET}  ${WHITE}Day ${BOLD}%d${RESET}${WHITE} of %d${RESET}                    ${WHITE}%d days left${RESET} ${PURPLE}   │${RESET}\n" "$current_day" "$total_days" "$remaining_days"
+    printf "${PURPLE}│${RESET}  ${WHITE}Day ${BOLD}%3d${RESET}${WHITE} of %d${RESET}                    ${WHITE}%d days left${RESET} ${PURPLE}   │${RESET}\n" \
+  "$current_day" "$total_days" "$remaining_days"
     printf "${PURPLE}│${RESET}  ${GRAY}Year: %d${RESET}                                    ${PURPLE}     │${RESET}\n" "$current_year"
     printf "${PURPLE}└─────────────────────────────────────────────────────┘${RESET}\n"
     printf "\n"
